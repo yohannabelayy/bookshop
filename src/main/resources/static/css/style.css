@@ -1,0 +1,41 @@
+/*
+ * Created by Yohanna Belay  on 2026.6.2
+ * Copyright © 2026 Yohanna Belay. All rights reserved.
+ */
+
+/* General */
+body {
+    font-family: 'Lato', sans-serif;
+    background-color: #f5f0e8;
+}
+
+/* Navbar */
+.navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+}
+
+/* Hero */
+.hero-section {
+    background: linear-gradient(135deg, #3d2b1f, #6b4c35);
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+}
+
+/* Book cards */
+.book-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 1px solid #d4c4a8;
+}
+
+.book-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.book-cover {
+    height: 200px;
+    object-fit: cover;
+}
