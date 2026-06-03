@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'https://bookshop-backend-882429627989.us-central1.run.app';
 
 async function request(path, options = {}) {
     try {
@@ -120,3 +120,4 @@ function logout() {
     localStorage.removeItem('userEmail');
     window.location.href = 'login.html';
 }
+
