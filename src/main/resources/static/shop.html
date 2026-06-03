@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Browse Books — The Dusty Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">?? The Dusty Page</a>
+        <div class="d-flex align-items-center gap-3 ms-auto">
+            <a href="cart.html" class="btn btn-outline-light btn-sm">
+                ?? Cart <span id="cartCount" class="badge bg-danger">0</span>
+            </a>
+            <div id="authLinks">
+                <a href="login.html" class="btn btn-outline-light btn-sm">Sign In</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <h2 class="mb-4" style="font-family:'Playfair Display',serif">Browse All Books</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <input type="text" class="form-control" id="searchInput" placeholder="Search books..."/>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="categorySelect">
+                <option value="">All Categories</option>
+                <option value="Fiction">Fiction</option>
+                <option value="Classics">Classics</option>
+                <option value="Mystery">Mystery</option>
+                <option value="Science">Science</option>
+                <option value="Non-Fiction">Non-Fiction</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-dark w-100" onclick="filterBooks()">Search</button>
+        </div>
+    </div>
+    <div class="row g-4" id="booksGrid">
+        <p class="text-muted">Loading books...</p>
+    </div>
+</div>
+
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container text-center">
+        <p class="mb-0">© 2024 The Dusty Page</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script>
+    let allBooks = [];
+
+    function updateNav() {
+        const token = localStorage.getItem('token');
+        const name = localStorage.getItem('userName');
+        const authLinks = document.getElementById('authLinks');
+        if (token) {
+            authLinks.innerHTML = `<span class="text-white me-2">Hi, ${name}</span>
+                <button onclick="logout()" class="btn btn-outline-danger btn-sm">Logout</button>`;
+        }
+    }
+
+    async function loadBooks() {
+        try {
+            allBooks = await getAllProducts();
+            renderBooks(allBooks);
+            updateCartCount();
+        } catch (e) {
+            document.getElementById('booksGrid').innerHTML = '<p class="text-danger">Could not load books.</p>';
+        }
+    }
+
+    async function filterBooks() {
+        const search = document.getElementById('searchInput').value.trim();
+        const category = document.getElementById('categorySelect').value;
+        try {
+            if (search) {
+                allBooks = await searchProducts(search);
+            } else if (category) {
+                allBooks = await getProductsByCategory(category);
+            } else {
+                allBooks = await getAllProducts();
+            }
+            renderBooks(allBooks);
+        } catch (e) {
+            document.getElementById('booksGrid').innerHTML = '<p class="text-danger">Could not load books.</p>';
+        }
+    }
+
+    function renderBooks(books) {
+        const grid = document.getElementById('booksGrid');
+        if (!books.length) {
+            grid.innerHTML = '<p class="text-muted">No books found.</p>';
+            return;
+        }
+        grid.innerHTML = books.map(book => `
+            <div class="col-6 col-md-3">
+                <div class="card h-100 book-card" onclick="window.location.href='product.html?id=${book.id}'">
+                    <img src="${book.imageUrl}" class="card-img-top book-cover" alt="${book.title}"/>
+                    <div class="card-body">
+                        <h6 class="card-title">${book.title}</h6>
+                        <p class="text-muted small">${book.author}</p>
+                        <p class="fw-bold">£${book.price}</p>
+                        <button class="btn btn-dark btn-sm w-100"
+                            onclick="event.stopPropagation(); addToCart({id:${book.id}, title:'${book.title.replace(/'/g,"\\'")}', price:${book.price}, imageUrl:'${book.imageUrl}'})">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>`).join('');
+    }
+
+    updateNav();
+    loadBooks();
+</script>
+</body>
+</html>

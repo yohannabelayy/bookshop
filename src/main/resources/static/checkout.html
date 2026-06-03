@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Checkout — The Dusty Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">?? The Dusty Page</a>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <div id="successState" class="d-none text-center py-5">
+        <p style="font-size:4rem">??</p>
+        <h2 style="font-family:'Playfair Display',serif">Order Placed!</h2>
+        <p class="text-muted">Thank you for your purchase.</p>
+        <p id="orderId" class="text-muted small"></p>
+        <div class="d-flex gap-3 justify-content-center mt-4">
+            <a href="orders.html" class="btn btn-dark">View My Orders</a>
+            <a href="shop.html" class="btn btn-outline-secondary">Continue Shopping</a>
+        </div>
+    </div>
+
+    <div id="checkoutForm">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card p-4">
+                    <h5 style="font-family:'Playfair Display',serif" class="mb-4">Delivery Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="firstName" placeholder="Jane"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="lastName" placeholder="Austen"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            <input type="text" class="form-control" id="address" placeholder="123 Book Lane"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">City</label>
+                            <input type="text" class="form-control" id="city" placeholder="London"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Postcode</label>
+                            <input type="text" class="form-control" id="postcode" placeholder="EC1A 1BB"/>
+                        </div>
+                    </div>
+                    <h5 style="font-family:'Playfair Display',serif" class="mt-4 mb-3">Payment</h5>
+                    <div class="alert alert-info small">This is a demo — no real payment is taken.</div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Card Number</label>
+                            <input type="text" class="form-control" placeholder="4242 4242 4242 4242"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Expiry</label>
+                            <input type="text" class="form-control" placeholder="MM/YY"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">CVV</label>
+                            <input type="text" class="form-control" placeholder="123"/>
+                        </div>
+                    </div>
+                    <div id="errorMsg" class="alert alert-danger mt-3 d-none"></div>
+                    <button class="btn btn-dark w-100 mt-4" onclick="doCheckout()" id="placeBtn">Place Order</button>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card p-4">
+                    <h5 style="font-family:'Playfair Display',serif" class="mb-3">Your Books</h5>
+                    <div id="orderItems"></div>
+                    <hr/>
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total</span>
+                        <span id="orderTotal"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script>
+    if (!isLoggedIn()) window.location.href = 'login.html';
+
+    function init() {
+        const items = getCart();
+        if (!items.length) { window.location.href = 'cart.html'; return; }
+
+        document.getElementById('orderTotal').textContent = `£${getCartTotal()}`;
+        document.getElementById('orderItems').innerHTML = items.map(i => `
+            <div class="d-flex justify-content-between mb-2 small">
+                <span>${i.title} × ${i.quantity}</span>
+                <span>£${(i.price * i.quantity).toFixed(2)}</span>
+            </div>`).join('');
+    }
+
+    async function doCheckout() {
+        const btn = document.getElementById('placeBtn');
+        const errEl = document.getElementById('errorMsg');
+        errEl.classList.add('d-none');
+        btn.disabled = true;
+        btn.textContent = 'Placing order...';
+
+        try {
+            const items = getCart().map(i => ({ productId: i.id, quantity: i.quantity }));
+            const result = await placeOrder(items);
+            saveCart([]);
+            document.getElementById('checkoutForm').classList.add('d-none');
+            document.getElementById('successState').classList.remove('d-none');
+            document.getElementById('orderId').textContent = `Order #${result.orderId} · Total £${parseFloat(result.total).toFixed(2)}`;
+        } catch (e) {
+            errEl.textContent = 'Something went wrong. Please try again.';
+            errEl.classList.remove('d-none');
+            btn.disabled = false;
+            btn.textContent = 'Place Order';
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
